@@ -9,7 +9,7 @@ import logging
 
 from amaranth import *
 from amaranth.lib.cdc import PulseSynchronizer, FFSynchronizer
-from amaranth.hdl.ast import Rose
+#from amaranth.hdl.ast import Rose
 
 
 class PHYResetController(Elaboratable):
@@ -211,7 +211,11 @@ class LinkPartnerDetector(Elaboratable):
 
                 # We can only perform detections from P2; so, when the user requests a detection, we'll
                 # need to move back to P2.
-                with m.If(Rose(self.request_detection)):
+                #rising_edge = Rose(self.request_detection)
+                past_rising_edge = Signal()
+                m.d.ss += past_rising_edge.eq(self.request_detection)
+                rising_edge = (past_rising_edge == 0) & (self.request_detection == 1)
+                with m.If(rising_edge):
                     m.next = "MOVE_TO_P2"
 
 

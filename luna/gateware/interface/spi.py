@@ -9,7 +9,7 @@
 import unittest
 
 from amaranth import Signal, Module, Cat, Elaboratable, Record
-from amaranth.hdl.ast import Rose, Fell
+#from amaranth.hdl.ast import Rose, Fell
 from amaranth.hdl.rec import DIR_FANIN, DIR_FANOUT
 
 from ..test.utils import LunaGatewareTestCase, sync_test_case
@@ -85,8 +85,14 @@ class SPIDeviceInterface(Elaboratable):
         # Generate the leading and trailing edge detectors.
         # Note that we use rising and falling edge detectors, but call these leading and
         # trailing edges, as our clock here may have been inverted.
-        leading_edge  = Rose(serial_clock, domain="sync")
-        trailing_edge = Fell(serial_clock, domain="sync")
+        #leading_edge  = Rose(serial_clock, domain="sync")
+        past_leading_edge = Signal()
+        m.d.sync += past_leading_edge.eq(serial_clock)
+        leading_edge = (past_leading_edge == 0) & (serial_clock == 1)
+        #trailing_edge = Fell(serial_clock, domain="sync")
+        past_trailing_edge = Signal()
+        m.d.sync += past_trailing_edge.eq(serial_clock)
+        trailing_edge = (past_trailing_edge == 1) & (serial_clock == 0)
 
         # Determine the sample and output edges based on the SPI clock phase.
         sample_edge = trailing_edge if self.clock_phase else leading_edge
@@ -336,7 +342,10 @@ class SPICommandInterface(Elaboratable):
         m = Module()
         spi = self.spi
 
-        sample_edge = Fell(spi.sck, domain="sync")
+        #sample_edge = Fell(spi.sck, domain="sync")
+        past_sample_edge = Signal()
+        m.d.sync += past_sample_edge.eq(spi.sck)
+        sample_edge = (past_sample_edge == 1) & (spi.sck == 0)
 
         # Bit counter: counts the number of bits received.
         max_bit_count = max(self.word_size, self.command_size)

@@ -34,7 +34,7 @@
 
 from amaranth          import Elaboratable, Module, Signal, Cat, Const, ClockSignal
 from amaranth.lib.fifo import AsyncFIFOBuffered
-from amaranth.hdl.ast  import Past
+#from amaranth.hdl.ast  import Past
 from amaranth.hdl.xfrm import ResetInserter
 
 from ...utils.cdc import synchronize
@@ -622,10 +622,12 @@ class RxPipeline(Elaboratable):
         # 1bit->8bit (1byte) gearing
         #
         m.submodules.shifter = shifter = RxShifter(width=8)
+        # past_o_pkt_active = Past(detect.o_pkt_active, domain="usb_io")
+        m.d.usb_io += past_o_pkt_active.eq(detect.o_pkt_active)
         m.d.comb += [
             shifter.reset.eq(detect.o_pkt_end),
             shifter.i_data.eq(bitstuff.o_data),
-            shifter.i_valid.eq(~bitstuff.o_stall & Past(detect.o_pkt_active, domain="usb_io")),
+            shifter.i_valid.eq(~bitstuff.o_stall & past_o_pkt_active),
         ]
 
         #
@@ -667,4 +669,3 @@ class RxPipeline(Elaboratable):
             m.d.usb += self.o_pkt_in_progress.eq(0)
 
         return m
-

@@ -6,7 +6,7 @@
 import logging
 
 from amaranth         import Signal, Module, Cat, Elaboratable, ClockSignal
-from amaranth.hdl.ast import Rose, Past
+#from amaranth.hdl.ast import Rose, Past
 
 from .receiver      import RxPipeline
 from .transmitter   import TxPipeline
